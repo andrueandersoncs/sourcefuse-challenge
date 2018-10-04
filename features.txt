@@ -1,0 +1,11 @@
+Overview:
+Write an application that shows your front end and overall development capabilities to build a mini-application for Uber users.
+It will allow a user to login by authenticating their Uber account with the application,
+and show them their ride history in Table format and also an option to see it on a Map view of everywhere they have used Uber.
+
+Features:
+Use the Uber API to auth the user and log them in
+Save the user information in the DB for the user account once auth’d, or create the entry if its the first auth
+Pull the ride history from the API and save it to the DB
+Allow for a Sync feature that will pull updated ride history from the API (you can choose where/when such as on login or a sync button or whatever you prefer)
+Show the user’s ride history in a map view for the cities they have used Uber in and a table view as welldist
