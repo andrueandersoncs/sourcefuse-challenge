@@ -54,8 +54,7 @@ app.use(cors);
 
 app.get('/login', function(req, res) {
   const url = uber.getAuthorizeUrl(['history']);
-  //res.redirect(url);
-  res.status(200).json({ location: url });
+  res.status(200).json({ location: `${url}&state=${req.user.uid}` });
 });
 
 app.get('/callback', function(req, res) {
@@ -63,7 +62,7 @@ app.get('/callback', function(req, res) {
     .spread(function(access_token, refresh_token, authorizedScopes, tokenExpiration) {
 
       // get the user by the req.user attribute
-      const docRef = db.collection('userTokens').doc(req.user.uid);
+      const docRef = db.collection('userTokens').doc(req.query.state);
       docRef.set({
         access_token,
         refresh_token,
@@ -86,16 +85,16 @@ app.get('/sync', function(req, res) {
     .then(function(snapshot) {
 
       if (!snapshot.exists) {
-        // console.log('ERROR!!! SNAPSHOT DOES NOT EXIST!!!');
         res.redirect('https://us-central1-sourcefuse-challenge-2.cloudfunctions.net/api/login');
         return;
       }
 
+      const data = snapshot.data();
       axios({
         method: 'GET',
         url: 'https://api.uber.com/v1.2/history?limit=50&offset=0',
         headers: {
-          'Authorization': `Bearer ${snapshot.access_token}`,
+          'Authorization': `Bearer ${data.access_token}`,
           'Accept-Language': 'en_US',
           'Content-Type': 'application/json'
         }
@@ -105,14 +104,22 @@ app.get('/sync', function(req, res) {
           res.status(200).send('Sync successful.');
         })
         .catch(function(err) {
-          // console.log('ERROR!!!' + err);
+
+          // access_token is incorrect or something like that, delete the invalid data.
+          docRef.delete()
+            .then(resp => {
+              res.redirect('https://us-central1-sourcefuse-challenge-2.cloudfunctions.net/api/login');
+              return;
+            })
+            .catch(deleteError => {
+
+              // just ignore it if for whatever reason the doc no longer exists.
+              console.log(deleteError);
+            });
           res.status(500).send('Could not get uber history.');
         });
     })
     .catch(function(err) {
-      // something wrong with the user token
-      // (user token doesn't exist)
-      // (user token is expired)
       res.status(500).send('Failed to sync uber history.');
     });
 });

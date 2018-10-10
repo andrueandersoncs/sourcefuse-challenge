@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Table } from 'reactstrap';
+import moment from 'moment';
 
 class RideHistoryTable extends Component {
   render() {
@@ -11,30 +12,34 @@ class RideHistoryTable extends Component {
       )
     }
     return (
-      <Table>
+      <Table striped>
         <thead>
           <tr>
-            <td>
+            <th>
               Status
-            </td>
-            <td>
+            </th>
+            <th>
               Distance
-            </td>
-            <td>
-              Start Time
-            </td>
-            <td>
-              Start City
-            </td>
+            </th>
+            <th>
+              Date
+            </th>
+            <th>
+              Time
+            </th>
+            <th>
+              City
+            </th>
           </tr>
         </thead>
         <tbody>
           {
             this.props.uberHistory.history.map(item => (
-              <tr>
-                <td>{item.status}</td>
-                <td>{item.distance}</td>
-                <td>{item['start_time']}</td>
+              <tr key={item['request_id']}>
+                <td>{item.status.charAt(0).toUpperCase() + item.status.slice(1)}</td>
+                <td>{(item.distance + '').substring(0, 4) + ' '} miles</td>
+                <td>{moment(item['start_time'] * 1000).format('MMMM Do YYYY')}</td>
+                <td>{moment(item['start_time'] * 1000).format('h:mm a')}</td>
                 <td>{item['start_city']['display_name']}</td>
               </tr>
             ))
